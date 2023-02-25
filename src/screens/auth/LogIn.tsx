@@ -1,38 +1,38 @@
 import React, {FC, useCallback} from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
-import LoginRegisterForm from '../../components/LoginForm';
+import LoginForm from '../../components/LoginForm';
+import useLogIn from '../../hooks/Auth/useLogIn';
 import {Text} from 'react-native-paper';
-import useRegister from '../../hooks/Auth/useRegister';
-import {NavigationKeys} from '../../navigation/NavigationKeys';
 import {StackScreenProps} from '@react-navigation/stack';
 import {AuthStackParamList} from '../../navigation/AuthNavigator';
+import {NavigationKeys} from '../../navigation/NavigationKeys';
 
 type Props = StackScreenProps<AuthStackParamList>;
 
-const Register: FC<Props> = ({navigation}) => {
-  const {register, loading, error} = useRegister();
+const LogIn: FC<Props> = ({navigation}) => {
+  const {logIn, loading, error} = useLogIn();
 
   const onSubmit = (email: string, password: string) => {
-    register(email, password);
+    logIn(email, password);
     Keyboard.dismiss();
   };
 
-  const onLoginButtonPress = useCallback(() => {
-    navigation.navigate(NavigationKeys.LogIn);
+  const onRegisterButtonPress = useCallback(() => {
+    navigation.navigate(NavigationKeys.Register);
   }, [navigation]);
 
   return (
     <View style={styles.container}>
-      <LoginRegisterForm
-        type={'register'}
+      <LoginForm
+        type={'login'}
         onSubmit={onSubmit}
         style={styles.form}
         loading={loading}
       />
       {error && <Text>{error}</Text>}
 
-      <Text style={styles.loginButton} onPress={onLoginButtonPress}>
-        Login
+      <Text style={styles.registerButton} onPress={onRegisterButtonPress}>
+        Register
       </Text>
     </View>
   );
@@ -48,9 +48,9 @@ const styles = StyleSheet.create({
   form: {
     alignSelf: 'stretch',
   },
-  loginButton: {
+  registerButton: {
     marginTop: 20,
   },
 });
 
-export default Register;
+export default LogIn;

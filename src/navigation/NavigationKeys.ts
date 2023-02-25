@@ -1,5 +1,5 @@
 export enum NavigationKeys {
-  Login = 'Login',
+  LogIn = 'LogIn',
   Register = 'Register',
 
   Chat = 'Chat',

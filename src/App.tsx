@@ -1,16 +1,17 @@
-import React from 'react';
-import {SafeAreaView, StatusBar, StyleSheet} from 'react-native';
+import React, {FC} from 'react';
 import RootNavigator from './navigation/RootNavigator';
+import {NavigationContainer} from '@react-navigation/native';
+import useAuth from './hooks/Auth/useAuth';
+import Initializing from './screens/Initializing';
 
-function App(): JSX.Element {
+const App: FC = () => {
+  const {initializing} = useAuth();
+
   return (
-    <SafeAreaView style={StyleSheet.absoluteFill}>
-      <StatusBar barStyle={'light-content'} />
-      <RootNavigator />
-    </SafeAreaView>
+    <NavigationContainer>
+      {initializing ? <Initializing /> : <RootNavigator />}
+    </NavigationContainer>
   );
-}
-
-const styles = StyleSheet.create({});
+};
 
 export default App;

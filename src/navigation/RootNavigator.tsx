@@ -1,16 +1,25 @@
 import React, {FC} from 'react';
-import {NavigationContainer} from '@react-navigation/native';
 import AppNavigator from './AppNavigator';
 import AuthNavigator from './AuthNavigator';
+import {StyleSheet, View} from 'react-native';
+import {useUserStore} from '../store/userStore';
 
 const RootNavigator: FC = () => {
-  const isLogged = false;
+  const user = useUserStore(state => state.user);
+
+  const isLoggedIn = !!user;
 
   return (
-    <NavigationContainer>
-      {isLogged ? <AppNavigator /> : <AuthNavigator />}
-    </NavigationContainer>
+    <View style={styles.container}>
+      {isLoggedIn ? <AppNavigator /> : <AuthNavigator />}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 
 export default RootNavigator;
