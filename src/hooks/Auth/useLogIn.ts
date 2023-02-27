@@ -13,7 +13,6 @@ const useLogIn = () => {
       await auth().signInWithEmailAndPassword(email, password);
     } catch (e) {
       console.log(e);
-
       setError(parseFirebaseAuthError(e));
     } finally {
       setLoading(false);

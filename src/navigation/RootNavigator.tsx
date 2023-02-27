@@ -1,5 +1,5 @@
 import React, {FC} from 'react';
-import AppNavigator from './AppNavigator';
+import ChatNavigator from './ChatNavigator';
 import AuthNavigator from './AuthNavigator';
 import {StyleSheet, View} from 'react-native';
 import {useUserStore} from '../store/userStore';
@@ -11,7 +11,7 @@ const RootNavigator: FC = () => {
 
   return (
     <View style={styles.container}>
-      {isLoggedIn ? <AppNavigator /> : <AuthNavigator />}
+      {isLoggedIn ? <ChatNavigator /> : <AuthNavigator />}
     </View>
   );
 };
