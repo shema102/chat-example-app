@@ -9,19 +9,19 @@ export const historyToMessages = (
 
   return messages
     .reverse()
-    .filter(message => !!message.timetoken)
+    .filter(message => !!message.timetoken || !!message.uuid)
     .map(message => {
       const createdAt: Date = new Date(
         Number.parseInt(message.timetoken as string, 10) / 10000,
       );
 
-      const authorId = message?.meta?.authorId;
+      const authorId = message.uuid as string;
 
       return {
         _id: createdAt.toString() + authorId,
         text: message.message,
         createdAt,
-        user: {_id: authorId},
+        user: {_id: authorId, name: authorId},
       };
     });
 };
@@ -33,13 +33,13 @@ export const subscriptionToMessage = (
     Number.parseInt(messageEvent.timetoken, 10) / 10000,
   );
 
-  const authorId = messageEvent?.userMetadata?.authorId;
+  const authorId = messageEvent.publisher;
 
   return {
     _id: createdAt.toString() + authorId,
     text: messageEvent.message,
     createdAt,
-    user: {_id: authorId},
+    user: {_id: authorId, name: authorId},
   };
 };
 
@@ -48,7 +48,7 @@ export const getMessageEventId = (response: Pubnub.MessageEvent) => {
     Number.parseInt(response.timetoken, 10) / 10000,
   );
 
-  const authorId = response?.userMetadata?.authorId;
+  const authorId = response.publisher;
 
   return createdAt.toString() + authorId;
 };

@@ -9,7 +9,6 @@ import Pubnub from 'pubnub';
 import {useUserStore} from '../../store/userStore';
 import {GiftedChat, IMessage} from 'react-native-gifted-chat';
 import {
-  getMessageEventId,
   historyToMessages,
   subscriptionToMessage,
 } from '../../utils/dataTransformers';
@@ -30,13 +29,19 @@ const Chat: FC<Props> = ({route}) => {
   const [messages, setMessages] = useState<Array<IMessage>>([]);
 
   useEffect(() => {
+    let shouldSetMessages = true;
+
     const fetchHistory = async () => {
       try {
         const response = await pubnub.fetchMessages({
           channels: [channelId],
-          includeMeta: true,
+          includeUUID: true,
           count: 50,
         });
+
+        if (!shouldSetMessages) {
+          return;
+        }
 
         setMessages(historyToMessages(response, channelId));
       } catch (e) {
@@ -45,12 +50,16 @@ const Chat: FC<Props> = ({route}) => {
     };
 
     fetchHistory();
+
+    return () => {
+      shouldSetMessages = false;
+    };
   }, [pubnub, channelId]);
 
   const fetchMore = useCallback(async () => {
     const response = await pubnub.fetchMessages({
       channels: [channelId],
-      includeMeta: true,
+      includeUUID: true,
       count: 50,
       start:
         typeof messages[0].createdAt === 'object'
@@ -70,11 +79,10 @@ const Chat: FC<Props> = ({route}) => {
         await pubnub.publish({
           channel: channelId,
           message: messagesToSend[0].text,
-          meta: {authorId: userId},
         });
       }
     },
-    [pubnub, channelId, userId],
+    [pubnub, channelId],
   );
 
   useEffect(() => {
