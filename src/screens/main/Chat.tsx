@@ -87,28 +87,24 @@ const Chat: FC<Props> = ({route}) => {
 
   useEffect(() => {
     const handleMessage = (messageEvent: Pubnub.MessageEvent) => {
-      const alreadyExists = messages.some(
-        message => message._id === getMessageEventId(messageEvent),
-      );
-
-      if (alreadyExists) {
-        return;
-      }
-
       setMessages(prevMessages => [
         subscriptionToMessage(messageEvent),
         ...prevMessages,
       ]);
     };
 
-    pubnub.addListener({message: handleMessage});
+    const listenerParams = {
+      message: handleMessage,
+    };
+
+    pubnub.addListener(listenerParams);
     pubnub.subscribe({channels: [channelId]});
 
     return () => {
-      pubnub.removeListener({message: handleMessage});
-      pubnub.unsubscribeAll();
+      pubnub.unsubscribe({channels: [channelId]});
+      pubnub.removeListener(listenerParams);
     };
-  }, [pubnub, channelId, messages]);
+  }, [channelId, pubnub]);
 
   return (
     <GiftedChat
