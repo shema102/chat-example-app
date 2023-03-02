@@ -1,54 +1,76 @@
 import {IMessage} from 'react-native-gifted-chat';
 import Pubnub from 'pubnub';
+import {getUsernameForId} from '../hooks/useUsername';
 
-export const historyToMessages = (
+const UsernameCache: Map<string, string> = new Map();
+
+export const historyToMessages = async (
   history: Pubnub.FetchMessagesResponse,
   channel: string,
-): Array<IMessage> => {
+): Promise<Array<IMessage>> => {
   const messages = history.channels[channel];
 
-  return messages
+  if (!messages) {
+    return [];
+  }
+
+  const messagesWithTimetokens = messages
     .reverse()
-    .filter(message => !!message.timetoken || !!message.uuid)
-    .map(message => {
-      const createdAt: Date = new Date(
-        Number.parseInt(message.timetoken as string, 10) / 10000,
-      );
+    .filter(message => !!message.timetoken);
 
-      const authorId = message.uuid as string;
+  const messagesWithUsernames: Array<IMessage> = [];
 
-      return {
-        _id: createdAt.toString() + authorId,
-        text: message.message,
-        createdAt,
-        user: {_id: authorId, name: authorId},
-      };
-    });
+  for (const message of messagesWithTimetokens) {
+    const createdAt: Date = new Date(
+      Number.parseInt(message.timetoken as string, 10) / 10000,
+    );
+
+    const authorId = message.uuid as string;
+
+    let username;
+
+    if (!UsernameCache.has(authorId)) {
+      username = await getUsernameForId(authorId);
+      UsernameCache.set(authorId, username);
+    } else {
+      username = UsernameCache.get(authorId) as string;
+    }
+
+    const messageWithUsername = {
+      _id: createdAt.toString() + authorId,
+      text: message.message,
+      createdAt,
+      user: {_id: authorId, name: username},
+    };
+
+    messagesWithUsernames.push(messageWithUsername);
+  }
+
+  return messagesWithUsernames;
 };
 
-export const subscriptionToMessage = (
+export const subscriptionToMessage = async (
   messageEvent: Pubnub.MessageEvent,
-): IMessage => {
+): Promise<IMessage> => {
   const createdAt: Date = new Date(
     Number.parseInt(messageEvent.timetoken, 10) / 10000,
   );
 
   const authorId = messageEvent.publisher;
 
+  let username;
+
+  if (!UsernameCache.has(authorId)) {
+    username = await getUsernameForId(authorId);
+    UsernameCache.set(authorId, username);
+  } else {
+    username = UsernameCache.get(authorId) as string;
+  }
+
   return {
     _id: createdAt.toString() + authorId,
     text: messageEvent.message,
     createdAt,
-    user: {_id: authorId, name: authorId},
+    user: {_id: authorId, name: username},
   };
-};
-
-export const getMessageEventId = (response: Pubnub.MessageEvent) => {
-  const createdAt: Date = new Date(
-    Number.parseInt(response.timetoken, 10) / 10000,
-  );
-
-  const authorId = response.publisher;
-
-  return createdAt.toString() + authorId;
 };

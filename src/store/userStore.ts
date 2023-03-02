@@ -4,19 +4,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 
 export type UserState = {
-  userName: string | null;
+  username: string | null;
   user: FirebaseAuthTypes.User | null;
 
-  setUserName: (name: string) => void;
+  setUsername: (name: string | null) => void;
   setUser: (user: FirebaseAuthTypes.User | null) => void;
 };
 
 export const useUserStore = create<UserState>()(
   persist(
     set => ({
-      userName: null,
+      username: null,
       user: null,
-      setUserName: name => set(() => ({userName: name})),
+      setUsername: name => set(() => ({username: name})),
       setUser: user => set(() => ({user: user})),
     }),
     {

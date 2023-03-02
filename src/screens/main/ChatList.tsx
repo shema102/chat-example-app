@@ -1,12 +1,16 @@
 import React, {FC, useCallback, useEffect, useMemo, useState} from 'react';
 import {Alert, StyleSheet, View} from 'react-native';
-import {IconButton} from 'react-native-paper';
+import {Button, IconButton} from 'react-native-paper';
 import {usePubNub} from 'pubnub-react';
 import {NavigationProp} from '@react-navigation/native';
 import {AppStackParamList} from '../../navigation/ChatNavigator';
 import NewChatChannelDialog from '../../components/NewChatChannelDialog';
 import ChannelList, {Channel} from '../../components/ChannelList/ChannelList';
 import {NavigationKeys} from '../../navigation/NavigationKeys';
+import useUsername from '../../hooks/useUsername';
+import SetUsernameDialog from '../../components/SetUsernameDialog';
+import LogoutFAB from '../../components/LogoutFAB';
+import useLogout from '../../hooks/Auth/useLogout';
 
 type Props = {
   navigation: NavigationProp<AppStackParamList>;
@@ -14,6 +18,8 @@ type Props = {
 
 const ChatList: FC<Props> = ({navigation}) => {
   const pubnub = usePubNub();
+
+  const {logout} = useLogout();
 
   const [channels, setChannels] = useState<Array<string>>([]);
 
@@ -94,6 +100,10 @@ const ChatList: FC<Props> = ({navigation}) => {
     [deleteChannel],
   );
 
+  const [showSetUsernameModal, setShowSetUsernameModal] = useState(false);
+
+  const {saveUsername} = useUsername();
+
   return (
     <View style={styles.container}>
       <ChannelList
@@ -102,10 +112,23 @@ const ChatList: FC<Props> = ({navigation}) => {
         data={channels.map(channel => ({name: channel}))}
       />
 
+      <Button onPress={() => setShowSetUsernameModal(true)}>
+        Set new username
+      </Button>
+
+      <LogoutFAB onLogout={logout} />
+
       {newChannelModalVisible && (
         <NewChatChannelDialog
           onConfirm={createChannel}
           onDismiss={hideCreateChannelModal}
+        />
+      )}
+
+      {showSetUsernameModal && (
+        <SetUsernameDialog
+          onConfirm={saveUsername}
+          onDismiss={() => setShowSetUsernameModal(false)}
         />
       )}
     </View>
@@ -114,6 +137,7 @@ const ChatList: FC<Props> = ({navigation}) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     paddingHorizontal: 16,
   },
 });

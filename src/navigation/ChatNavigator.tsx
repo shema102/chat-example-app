@@ -24,6 +24,8 @@ const ChatNavigator: FC = () => {
 
   const userId = user!!.uid; // we know user is not null here
 
+  const username = useUserStore(state => state.username) ?? 'Username not set';
+
   const pubnub = useMemo(
     () =>
       new PubNub({
@@ -32,6 +34,13 @@ const ChatNavigator: FC = () => {
         uuid: userId,
       }),
     [userId],
+  );
+
+  const chatListOptions = useMemo<StackNavigationOptions>(
+    () => ({
+      title: `Hello ${username}`,
+    }),
+    [username],
   );
 
   const chatOptions = useCallback<
@@ -48,7 +57,11 @@ const ChatNavigator: FC = () => {
   return (
     <PubNubProvider client={pubnub}>
       <Stack.Navigator initialRouteName={NavigationKeys.ChatList}>
-        <Stack.Screen name={NavigationKeys.ChatList} component={ChatList} />
+        <Stack.Screen
+          options={chatListOptions}
+          name={NavigationKeys.ChatList}
+          component={ChatList}
+        />
         <Stack.Screen
           options={chatOptions}
           name={NavigationKeys.Chat}

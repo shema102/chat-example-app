@@ -43,7 +43,9 @@ const Chat: FC<Props> = ({route}) => {
           return;
         }
 
-        setMessages(historyToMessages(response, channelId));
+        const historyMessages = await historyToMessages(response, channelId);
+
+        setMessages(historyMessages);
       } catch (e) {
         console.log('error fetching history', e);
       }
@@ -67,10 +69,9 @@ const Chat: FC<Props> = ({route}) => {
           : messages[0].createdAt,
     });
 
-    setMessages(prevMessages => [
-      ...prevMessages,
-      ...historyToMessages(response, channelId),
-    ]);
+    const newMessages = await historyToMessages(response, channelId);
+
+    setMessages(prevMessages => [...prevMessages, ...newMessages]);
   }, [pubnub, channelId, messages]);
 
   const onSend = useCallback(
@@ -86,11 +87,10 @@ const Chat: FC<Props> = ({route}) => {
   );
 
   useEffect(() => {
-    const handleMessage = (messageEvent: Pubnub.MessageEvent) => {
-      setMessages(prevMessages => [
-        subscriptionToMessage(messageEvent),
-        ...prevMessages,
-      ]);
+    const handleMessage = async (messageEvent: Pubnub.MessageEvent) => {
+      const message = await subscriptionToMessage(messageEvent);
+
+      setMessages(prevMessages => [message, ...prevMessages]);
     };
 
     const listenerParams = {
@@ -111,9 +111,12 @@ const Chat: FC<Props> = ({route}) => {
       messages={messages}
       onSend={onSend}
       onLoadEarlier={fetchMore}
+      renderUsernameOnMessage
       user={{
         _id: userId,
       }}
+      alignTop={true}
+      initialText={''}
     />
   );
 };
