@@ -59,14 +59,22 @@ const Chat: FC<Props> = ({route}) => {
   }, [pubnub, channelId]);
 
   const fetchMore = useCallback(async () => {
+    const oldestMessage = messages[0];
+
+    if (!oldestMessage) {
+      return;
+    }
+
+    const oldestMessageCreatedAt =
+      typeof oldestMessage.createdAt === 'object'
+        ? Number(oldestMessage.createdAt.getTime() * 1000)
+        : oldestMessage.createdAt * 1000;
+
     const response = await pubnub.fetchMessages({
       channels: [channelId],
       includeUUID: true,
       count: 50,
-      start:
-        typeof messages[0].createdAt === 'object'
-          ? messages[0].createdAt.toString()
-          : messages[0].createdAt,
+      start: oldestMessageCreatedAt,
     });
 
     const newMessages = await historyToMessages(response, channelId);
